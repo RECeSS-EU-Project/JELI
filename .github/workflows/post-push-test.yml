@@ -1,0 +1,41 @@
+name: jeli post-pushing testing
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }} using Miniconda
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies and build jeli
+        run: |
+          pip install --upgrade pip
+          python -m pip install -r pip/requirements.txt
+          python -m pip install .
+      - name: Test import jeli
+        run: |
+          python -c "import JELI; import JELIImplementation; print('jeli has been successfully installed and is importable in Python.')"
+      - name: Tests (HO)FM for fit and predict
+        working-directory: ./tests/
+        run: |
+          python -m test_fmclass
+      - name: Test HOFM classes for larger orders
+        working-directory: ./tests/
+        run: |
+          python -m test_hofm
+      - name: Test JELI classifier
+        working-directory: ./tests/
+        run: |
+          python -m test_modelclass
