@@ -26,7 +26,7 @@ jobs:
           python -m pip install .
       - name: Test import jeli
         run: |
-          python -c "import JELI; import JELIImplementation; print('jeli has been successfully installed and is importable in Python.')"
+          python -c "import jeli.JELI; import jeli.JELIImplementation; print('jeli has been successfully installed and is importable in Python.')"
       - name: Tests (HO)FM for fit and predict
         working-directory: ./tests/
         run: |
