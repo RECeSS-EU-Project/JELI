@@ -38,7 +38,7 @@ from qnorm import quantile_normalize
 ###################################################################################
 class RHOFM(nn.Module):
     '''
-    Redundant / Inhomogeneous anova kernel with structure Higher Order Factorization Machine
+    Redundant structured Higher Order Factorization Machine (RHOFM)
 
     ...
 
@@ -52,6 +52,8 @@ class RHOFM(nn.Module):
     	the dependency on feature embeddings
     cuda_on : bool
     	use cuda if True
+    random_state : int
+    	seed
 
     Attributes
     ----------
@@ -79,14 +81,16 @@ class RHOFM(nn.Module):
 
         Parameters
         ----------
-    	d : int
-            dimension
-    	order : int
-            order
-    	structure : function or "linear"
-            the dependency on feature embeddings
-    	cuda_on : bool
-            use cuda if True
+	d : int
+	    dimension
+	order : int
+	    order of the factorization machine
+	structure : function or "linear"
+    	    the dependency on feature embeddings
+	cuda_on : bool
+    	    use CUDA if True
+	random_state : int
+    	    seed
         '''
         super().__init__()
         assert order>=1
@@ -110,6 +114,16 @@ class RHOFM(nn.Module):
         self.seed_everything(random_state)
         
     def seed_everything(self, seed):
+        '''
+        Ensure reproducibility based on the input seed
+
+        ...
+
+        Parameters
+        ----------
+	seed : int
+	    random seed
+        '''
         random.seed(seed)
         os.environ['PYTHONHASHSEED'] = str(seed)
         np.random.seed(seed)
@@ -120,19 +134,23 @@ class RHOFM(nn.Module):
         
     def forward(self, inp):
         '''
-        Outputs properly formatted scores (not necessarily in [0,1]!) from the fitted model on test_dataset. Internally calls model_predict() then reformats the scores
+        Compute the scores of the RHOFM for each of the n item-user pairs using their F-dimensional feature vectors x and the input feature embeddings W
+        RHOFM(x,W) = theta0 + theta1 . xW + sum_{2<=t<=m} theta2_{t} sum_{f_1<...<f_t<=F} <W_{f_1}, ..., W_{f_t}> x_{f_1} ... x_{f_t}
 
         ...
 
         Parameters
         ----------
-        test_dataset : stanscofi.Dataset
-            dataset on which predictions should be made
+        inp : tuple of size 3
+            contains
+                item : Tensor of shape (F, n)
+            	user : Tensor of shape (F, n)
+            	embs : Tensor of shape (F, d)
 
         Returns
         ----------
-        scores : COO-array of shape (n_items, n_users)
-            sparse matrix in COOrdinate format, with nonzero values corresponding to predictions on available pairs in the dataset
+        scores : Tensor of shape (n,1)
+            RHOFM scores
         '''
         item, user, embs = inp
         if (self.is_linear): ## ww = embs
@@ -180,6 +198,34 @@ class RHOFM(nn.Module):
     ############################################
     
     def sample(self, dataset, batch_size, stype="negative", batch_seed=1234, num_neg_samples=3, method="sparse", force_undirected=False):  
+        '''
+        Sampler for the RHOFM-only training algorithm: selection of batches
+
+        ...
+
+        Parameters
+        ----------
+        dataset : stanscofi.Dataset
+            training dataset
+        batch_size : int
+            maximum batch size
+        stype : str
+            type of sampler: 
+                "deterministic" (split without shuffling the data points: only for testing purposes)
+                "uniform" (split in even-sized chunks with shuffling)
+                "negative" (split with num_neg_samples negative samples per positive sample)
+        batch_seed : int
+            seed for the uniform sampler
+        num_neg_samples : int
+            number of negative samples per positive sample for the negative sampler
+        method : str
+            splitting method for the negative sampler
+
+        Returns
+        ----------
+        batch_folds : list of shape n//batch_size
+            contains COO-arrays with the row index, column index and target value
+        '''
         assert stype in ["uniform", "negative", "deterministic"]
         #stype = "deterministic"
         if (stype == "deterministic"): ## for testing purposes
@@ -218,6 +264,37 @@ class RHOFM(nn.Module):
        
      ## SGD and CD pipelines in https://arxiv.org/pdf/1607.07195.pdf
     def fit(self, dataset, embeddings=None, n_epochs=25, batch_size=100, optimizer_class=torch.optim.AdamW, loss="MarginRankingLoss", opt_params={'lr': 0.001, "weight_decay": 0.01}, early_stop=0, random_seed=1234):
+        '''
+        Fit for the RHOFM-only training algorithm
+
+        ...
+
+        Parameters
+        ----------
+        dataset : stanscofi.Dataset
+            training dataset
+        embeddings : Tensor of shape (F, d) or None
+            starting point for embeddings
+        n_epochs : int
+            number of epochs
+        batch_size : int
+            maximum batch size
+        optimizer_class : torch.optimizer
+            type of Pytorch optimizer
+        loss : str
+            type of Pytorch loss function
+        opt_params : dict
+            parameters to the optimizer
+        early_stop : int
+            if greater than 1, stops the training when the loss does not decrease for early_stop epochs
+        random_seed : int
+            seed
+
+        Returns
+        ----------
+        train_losses : list of float
+            loss value for each epoch
+        '''
         assert np.isfinite(dataset.items.toarray()).all()
         assert np.isfinite(dataset.users.toarray()).all()
         assert dataset.nitem_features == dataset.nuser_features
@@ -271,6 +348,21 @@ class RHOFM(nn.Module):
         return train_losses
         
     def predict_proba(self, dts, default_zero_val=1e-31):
+        '''
+        Predict RHOFM scores for all item-user pairs in the input dataset
+
+        ...
+
+        Parameters
+        ----------
+        dts : stanscofi.Dataset
+            dataset
+
+        Returns
+        ----------
+        scores : COO-array of the same shape as dts.ratings
+            the scores for each item-user pair in the dataset
+        '''
         assert self.embeddings is not None
         items = torch.Tensor(dts.items.toarray().T[dts.folds.row,:])
         users = torch.Tensor(dts.users.toarray().T[dts.folds.col])
@@ -283,6 +375,23 @@ class RHOFM(nn.Module):
         return scores
         
     def predict(self, scores, threshold=0.5):
+        '''
+        Classify item-user pairs based on scores
+
+        ...
+
+        Parameters
+        ----------
+        scores : COO-array of shape (n, m)
+           RHOFM scores
+        threshold : float
+           threshold to classify
+
+        Returns
+        ----------
+        preds : COO-array of shape (n, m)
+            classes (+1: positive, -1: negative) for scored item-user pairs
+        '''
         preds = coo_array((scores.toarray()!=0).astype(int)*((-1)**(scores.toarray()<=0.5)))
         return preds
 

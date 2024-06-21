@@ -1,0 +1,16 @@
+cff-version: "1.0.0"
+authors:
+- family-names: Réda
+  given-names: Clémence
+  orcid: "https://orcid.org/0000-0003-3238-0258"
+- family-names: Vie
+  given-names: Jill-Jênn
+  orcid: "https://orcid.org/0000-0002-9304-2220"
+- family-names: Wolkenhauer
+  given-names: Olaf
+  orcid: "https://orcid.org/0000-0001-6105-2937"
+message: If you use this software, please cite this repository and the RECeSS project.
+title: "Joint Embedding-classifier Learning for improved Interpretability (JELI) "
+version: 1.0.0
+date-released: 2024-06-22
+url: "https://github.com/RECeSS-EU-Project/JELI"

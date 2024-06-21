@@ -14,7 +14,103 @@ import numpy as np
 import pandas as pd
 
 class JELI(BasicModel):
+    '''
+    The JELI classifier: a subclass of the BasicModel from the stanscofi package
+    
+    This classifier combines a special type of factorization machine with redundant coefficients, called "redundant structured higher order factorization machine" (RHOFM), and the learning of feature-specific embeddings via a knowledge graph completion task.
+
+    ...
+
+    Parameters
+    ----------
+    params : dict
+        contains keys 
+        	"epochs" (number of training epochs), 
+        	"batch_size" (size of training batches), 
+        	"lr" (learning rate), 
+        	"n_dimensions" (the dimension of the factorization machine), 
+        	"optimizer" (in pytorch, typically "Adam"), 
+        	"loss" (in pytorch, typically "SoftMarginRankingLoss"), 
+        	"loss_kwargs" (optional: parameters to the loss function), 
+        	"negative_sampler" (negative example sampler, typically "PseudoTypedNegativeSampler"), 
+        	"negative_sampler_kwargs" (optional: parameters to the negative sampler function), 
+        	"cuda_on" (boolean to activate CUDA or not), 
+        	"p_norm" (norm of the MuRE interaction model, typically 2), 
+        	"order" (order of the RHOFM, typically 2), 
+        	"structure" (structure of the embeddings in the RHOFM, either the string "linear" or a Python function with inputs x and w, where x is the feature vector, w the feature embedding matrix), 
+        	"sim_thres" (threshold for the similarity edges in the knowledge graph), 
+        	"use_ratings" (use the ratings as additional item/user feature vectors to build the knowledge graph),
+        	"random_seed" (random seed for training), 
+        	"partial_kge" (set of edges to add to the default knowledge graph), 
+        	"frozen" (boolean, if set to True, sets the non-embedding coefficients of the RHOFM to 1), 
+        	"kge_name" (string, where to save the knowledge graph locally)
+
+    Attributes
+    ----------
+    name : str
+        the name of the model: "JELI"
+    model : dict
+	contains keys 
+		"feature_embeddings" (feature embeddings), 
+		"features": (normalized feature matrix on which the model was trained), 
+		"feature_list" (list of feature names), 
+		"nitems" (number of items), 
+		"model" (classifier model for prediction), 
+		"losses" (list of training losses), 
+		"random_seed" (seed on which the model was trained)
+    Methods
+    -------
+    __init__(params)
+        Initializes the model with preselected parameters
+    fit(train_dataset, seed=1234)
+        Preprocesses and fits the model 
+    predict_proba(test_dataset)
+        Outputs properly formatted predictions of the fitted model on test_dataset
+    predict(scores)
+        Applies the following decision rule: if score<threshold, then return the negative label, otherwise return the positive label
+    recommend_k_pairs(dataset, k=1, threshold=None)
+        Outputs the top-k (item, user) candidates (or candidates which score is higher than a threshold) in the input dataset
+    print_scores(scores)
+        Prints out information about scores
+    print_classification(predictions)
+        Prints out information about predicted labels
+    preprocessing(train_dataset) [not implemented in BasicModel]
+        Preprocess the input dataset into something that is an input to the self.model_fit if it exists
+    model_fit(train_dataset) [not implemented in BasicModel]
+        Fits the model on train_dataset
+    model_predict_proba(test_dataset) [not implemented in BasicModel]
+        Outputs predictions of the fitted model on test_dataset
+    '''
     def __init__(self, params=None):
+        '''
+        Creates an instance of JELI.JELI
+
+        ...
+
+        Parameters
+        ----------
+        params : dict
+		contains keys 
+			"epochs" (number of training epochs), 
+			"batch_size" (size of training batches), 
+			"lr" (learning rate), 
+			"n_dimensions" (the dimension of the factorization machine), 
+			"optimizer" (in pytorch, typically "Adam"), 
+			"loss" (in pytorch, typically "SoftMarginRankingLoss"), 
+			"loss_kwargs" (optional: parameters to the loss function), 
+			"negative_sampler" (negative example sampler, typically "PseudoTypedNegativeSampler"), 
+			"negative_sampler_kwargs" (optional: parameters to the negative sampler function), 
+			"cuda_on" (boolean to activate CUDA or not), 
+			"p_norm" (norm of the MuRE interaction model, typically 2), 
+			"order" (order of the RHOFM, typically 2), 
+			"structure" (structure of the embeddings in the RHOFM, either the string "linear" or a Python function with inputs x and w, where x is the feature vector, w the feature embedding matrix), 
+			"sim_thres" (threshold for the similarity edges in the knowledge graph), 
+			"use_ratings" (use the ratings as additional item/user feature vectors to build the knowledge graph),
+			"random_seed" (random seed for training), 
+			"partial_kge" (set of edges to add to the default knowledge graph), 
+			"frozen" (boolean, if set to True, sets the non-embedding coefficients of the RHOFM to 1), 
+			"kge_name" (string, where to save the knowledge graph locally)
+        '''
         params_ = self.default_parameters()
         if (params is not None):
             params_.update(params)
@@ -53,6 +149,32 @@ class JELI(BasicModel):
         return params
 
     def preprocessing(self, dataset, is_training=True, inf=2):
+        '''
+        Preprocess the stanscofi.Dataset for the JELI model.
+
+        ...
+
+        Parameters
+        ----------
+        dataset : stanscofi.Dataset
+            user-item dataset
+        is_training : bool
+            is set to True if the preprocessing is for training JELI
+        inf : int
+            default value for infinite values in the dataset
+        ...
+
+        Returns
+        ----------
+        if is_training=True:
+        kge : JELI.JELIImplementation.KGE
+            the knowledge graph to train JELI on
+        else:
+        items : NumPy array of shape (F, n_i)
+            the preprocessed feature matrix of dimension F for n_i items
+        users : NumPy array of shape (F, n_u)
+            the preprocessed feature matrix of dimension F for n_u users
+        '''
         if (is_training):
             ## Merge user and item sets to get the full feature set
             S = pd.DataFrame(dataset.items.toarray(), index=dataset.item_features, columns=["i."+i for i in dataset.item_list])
@@ -83,6 +205,16 @@ class JELI(BasicModel):
             return [items, users]
         
     def model_fit(self, kge):
+        '''
+        Fit the JELI model on the training dataset, by simultaneously training on the knowledge graph completion and classification tasks.
+
+        ...
+
+        Parameters
+        ----------
+        kge : JELI.JELIImplementation.KGE
+            knowledge graph
+        '''
         results = pipeline(kge, model=make_model_cls(dimensions={"":1, "d": self.n_dimensions}, interaction_instance=MuRE_RHOFM(self.n_dimensions, self.order, self.structure, kge, frozen=self.frozen, p_norm=self.p_norm, cuda_on=self.cuda_on, random_seed=self.random_seed)),
             optimizer=self.optimizer, optimizer_kwargs={'lr': self.lr}, training_kwargs={'batch_size': self.batch_size, "stopper": None},
             training_loop='sLCWA', 
@@ -103,21 +235,77 @@ class JELI(BasicModel):
         }
 	
     def save(self, fname="model.pkl"):
+        '''
+        Save locally the JELI model.
+
+        ...
+
+        Parameters
+        ----------
+        fname : str
+            where to save the model
+        '''
         assert self.model is not None
         torch.save(self.model, fname, pickle_protocol=pickle.HIGHEST_PROTOCOL)
         
     def load(self, fname="model.pkl"):
+        '''
+        Load a locally saved JELI model.
+
+        ...
+
+        Parameters
+        ----------
+        fname : str
+            from where to load the model
+        '''
         self.model = torch.load(fname, map_location=torch.device('cpu'))
         self.features = self.model["features"]
         self.nitems = self.model["nitems"]
 
     def model_predict_proba(self, item, user): ### already normalized, see preprocessing
+        '''
+        Predict score for a pair (item, user) which has already been processed (quantile-normalized, same features, in the same order as in the training phase)
+
+        ...
+
+        Parameters
+        ----------
+        item : NumPy array of shape (F, 1)
+            item processed feature vector
+        user : NumPy array of shape (F, 1)
+            user processed feature vector
+
+        ...
+
+        Returns
+        ----------
+        scores : NumPy array of shape (1,)
+            prediction score for that pair
+        '''
         assert self.model is not None
         iitem, uuser = to_cuda(torch.Tensor(item).T, self.cuda_on), to_cuda(torch.Tensor(user).T, self.cuda_on)
         scores = torch.sigmoid(self.model["model"].FM((iitem, uuser, to_cuda(self.model["feature_embeddings"], self.cuda_on)))).detach().cpu().numpy().flatten()
         return scores
         
     def transform(self, entity, is_item=False): ## entity of size F x n
+        '''
+        Compute the embedding for any entity (item or user or feature)
+
+        ...
+
+        Parameters
+        ----------
+        entity : NumPy array of shape (F, n)
+            F-dimensional feature vectors for n entities
+
+        ...
+
+        Returns
+        ----------
+        embeddings : NumPy array of shape (d, n)
+            embeddings for each entity
+        '''
         assert self.model is not None
         assert self.feature_list is not None
         if (is_item):
@@ -131,6 +319,25 @@ class JELI(BasicModel):
         return self.model["model"].FM.structure(entity_, to_cuda(self.model["feature_embeddings"], self.cuda_on)).detach().cpu()
         
     def score(self, item, user):
+        '''
+        Predict score for a pair (item, user) which has *NOT* already been processed
+
+        ...
+
+        Parameters
+        ----------
+        item : NumPy array of shape (F, 1)
+            item processed feature vector
+        user : NumPy array of shape (F, 1)
+            user processed feature vector
+
+        ...
+
+        Returns
+        ----------
+        scores : NumPy array of shape (1,)
+            prediction score for that pair
+        '''
         assert self.model is not None
         assert self.feature_list is not None
         item__ = pd.DataFrame(1, index=self.feature_list[-1], columns=["ones"]).join(item, how="outer").values[:,1:].T

@@ -1,0 +1,53 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "type": "SoftwareSourceCode",
+    "applicationCategory": "recommender system",
+    "author": [
+        {
+            "id": "https://orcid.org/0000-0003-3238-0258",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "Systems Biology and Informatics, University of Rostock, Rostock, Germany"
+            },
+            "email": "clemence.reda@uni-rostock.de",
+            "familyName": "Réda",
+            "givenName": "Clémence"
+        }
+    ],
+    "codeRepository": "git+https://github.com/RECeSS-EU-Project/JELI",
+    "dateCreated": "2024-06-22",
+    "dateModified": "2024-06-22",
+    "datePublished": "2024-06-22",
+    "description": "Joint Embedding-classifier Learning for improved Interpretability (JELI) ",
+    "downloadUrl": "https://pypi.org/project/jeli/#files",
+    "funder": {
+        "type": "Organization",
+        "name": "Horizon 2022 programme"
+    },
+    "keywords": [
+        "collaborative filtering",
+        "drug repurposing",
+        "factorization machine",
+        "recommender system"
+    ],
+    "license": "https://spdx.org/licenses/MIT",
+    "name": "JELI",
+    "programmingLanguage": "Python 3",
+    "softwareRequirements": [
+        "numpy",
+        "pykeen>=1.10.1",
+        "stanscofi>=2.0.1",
+        "scikit-learn>=1.2.2",
+        "scipy>=1.9.3",
+        "torch_geometric>=2.4.0",
+        "igraph>=0.11.4",
+        "torch>=2.1.2",
+        "tqdm>=4.66.2",
+        "qnorm>=0.8.1",
+        "typing_extensions>=4.2.0"
+    ],
+    "version": "1.0.0",
+    "funding": "RECeSS - Robust Explainable Controllable Standard for drug Screening (101102016)",
+    "issueTracker": "https://github.com/RECeSS-EU-Project/JELI/issues"
+}
