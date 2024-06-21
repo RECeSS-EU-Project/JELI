@@ -47,7 +47,7 @@
         "qnorm>=0.8.1",
         "typing_extensions>=4.2.0"
     ],
-    "version": "1.0.0",
+    "version": "1.0.1",
     "funding": "RECeSS - Robust Explainable Controllable Standard for drug Screening (101102016)",
     "issueTracker": "https://github.com/RECeSS-EU-Project/JELI/issues"
 }

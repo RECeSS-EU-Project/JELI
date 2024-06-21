@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "license": {
+      "id": "MIT"
+    }, 
+    "title": "Joint Embedding-classifier Learning for improved Interpretability (JELI)", 
+    "notes": "If you use this software, please cite it as below.", 
+    "grants": [
+      {
+        "code": "101102016", 
+        "links": {
+          "self": "https://zenodo.org/api/grants/10.13039/501100000780::101102016"
+        }, 
+        "title": "Robust Explainable Controllable Standard for drug Screening", 
+        "acronym": "RECeSS", 
+        "program": "HE", 
+        "funder": {
+          "doi": "10.13039/501100000780", 
+          "acronyms": [], 
+          "name": "European Commission", 
+          "links": {
+            "self": "https://zenodo.org/api/funders/10.13039/501100000780"
+          }
+        }
+      }
+    ], 
+    "keywords": [
+      "collaborative filtering",
+       "drug repurposing",
+       "interpretability",
+        "factorization machine"
+    ], 
+    "creators": [
+      {
+        "orcid": "0000-0003-3238-0258", 
+        "name": "R\\'{e}da, Cl\\'{e}mence"
+      }
+    ], 
+    "access_right": "open", 
+    "resource_type": {
+      "type": "software", 
+      "title": "Software"
+    }, 
+    "description": "<p>Joint Embedding-classifier Learning for improved Interpretability (JELI).</p>"
+  }
+}

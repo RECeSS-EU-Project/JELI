@@ -4,7 +4,7 @@
 
 This repository is a part of the EU-funded [RECeSS project](https://recess-eu-project.github.io) (#101102016), and hosts the code for the open-source Python package *JELI* for the collaborative filtering approach.
 
-[![Python Version](https://img.shields.io/badge/python-3.8%7C3.9-pink)](https://img.shields.io/badge/python-3.8%7C3.9-pink) ![GitHub](https://img.shields.io/github/license/recess-eu-project/jeli.svg) [![Build Status](https://github.com/recess-eu-project/jeli/actions/workflows/post-push-test.yml/badge.svg)](https://github.com/recess-eu-project/jeli/actions/workflows/post-push-test.yml) [![Codecov](https://codecov.io/github/recess-eu-project/jeli/coverage.svg?branch=master)](https://codecov.io/github/recess-eu-project/jeli?branch=master) [![Codefactor](https://www.codefactor.io/repository/github/recess-eu-project/jeli/badge?style=plastic)](https://www.codefactor.io/repository/github/recess-eu-project/jeli) 
+[![Python Version](https://img.shields.io/badge/python-3.8%7C3.9-pink)](https://img.shields.io/badge/python-3.8%7C3.9-pink) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://github.com/recess-eu-project/jeli/actions/workflows/post-push-test.yml/badge.svg)](https://github.com/recess-eu-project/jeli/actions/workflows/post-push-test.yml) [![Codecov](https://codecov.io/github/recess-eu-project/jeli/coverage.svg?branch=master)](https://codecov.io/github/recess-eu-project/jeli?branch=master) [![Codefactor](https://www.codefactor.io/repository/github/recess-eu-project/jeli/badge?style=plastic)](https://www.codefactor.io/repository/github/recess-eu-project/jeli) 
 
 ## Statement of need 
 
@@ -46,7 +46,7 @@ This repository is under an [OSI-approved](https://opensource.org/licenses/) [MI
 If you use *JELI* in academic research, please cite it as follows
 
 ```
-Réda, Clémence, Vie, Jill-Jênn and Wolkenhauer, Olaf (2024). JELI: an interpretable embedding-learning recommender system for drug repurposing.
+Réda, Clémence, Vie, Jill-Jênn and Wolkenhauer, Olaf (2024). JELI: an interpretable embedding-learning recommender system for drug repurposing. doi: 10.5281/zenodo.12193722
 ```
 
 ## Community guidelines with respect to contributions, issue reporting, and support
