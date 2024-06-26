@@ -46,7 +46,7 @@ This repository is under an [OSI-approved](https://opensource.org/licenses/) [MI
 If you use *JELI* in academic research, please cite it as follows
 
 ```
-Réda, Clémence, Vie, Jill-Jênn and Wolkenhauer, Olaf (2024). JELI: an interpretable embedding-learning recommender system for drug repurposing. doi: 10.5281/zenodo.12193722
+Clémence Réda, Jill-Jênn Vie, Olaf Wolkenhauer. Joint Embedding-Classifier Learning for Interpretable Collaborative Filtering. 2024. hal-04625183.
 ```
 
 ## Community guidelines with respect to contributions, issue reporting, and support
