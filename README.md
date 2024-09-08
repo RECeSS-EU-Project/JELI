@@ -37,6 +37,48 @@ OS: developed and tested on Debian Linux.
 
 The complete list of dependencies for *JELI* can be found at [requirements.txt](https://raw.githubusercontent.com/RECeSS-EU-Project/JELI/master/pip/requirements.txt) (pip).
 
+## Usage
+
+```python
+from jeli.JELI import JELI
+
+from stanscofi.utils import load_dataset
+from stanscofi.training_testing import random_simple_split
+import pandas as pd
+
+## loads the Gottlieb drug repurposing data set
+data_args = load_dataset("Gottlieb", "./")
+dataset = Dataset(**data_args)
+
+## splits in training and testing sets without leakage
+(train_folds, test_folds), _ = random_simple_split(dataset, 0.2, random_state=1234)
+train = dataset.subset(train_folds)
+test = dataset.subset(test_folds)
+
+classifier = JELI({"cuda_on": False, "n_dimensions": 10, "random_state": 1234, "epochs": 25})
+
+## trains JELI on the training set
+classifier.fit(train)
+
+## predicts on the testing set
+scores = classifier.predict_proba(test)
+classifier.print_scores(scores)
+predictions = classifier.predict(scores, threshold=0.5)
+classifier.print_classification(predictions)
+
+## computes an embedding i (item/drug)
+item = pd.DataFrame(dataset.items.toarray()[:,0],index=dataset.item_features,columns=["0"])
+i = model.transform(item, is_item=True)
+
+## computes an embedding u (user/disease)
+user = pd.DataFrame(dataset.users.toarray()[:,0],index=dataset.user_features,columns=["0"])
+u = model.transform(user, is_item=False)
+
+## computes the feature-wise importance scores from embeddings
+embs = classifier.model["feature_embeddings"]
+feature_scores = embs.sum(axis=1)
+```
+
 ## Licence
 
 This repository is under an [OSI-approved](https://opensource.org/licenses/) [MIT license](https://raw.githubusercontent.com/RECeSS-EU-Project/JELI/master/LICENSE). 
