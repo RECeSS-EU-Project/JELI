@@ -24,7 +24,7 @@ setup(name=NAME,
     python_requires='>=3.8',
     install_requires=[
         "numpy",
-        "pykeen>=1.10.1",
+        "pykeen==1.10.1",
         "stanscofi>=2.0.1",
         "scikit-learn>=1.2.2",
         "scipy>=1.9.3",
