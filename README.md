@@ -88,7 +88,17 @@ This repository is under an [OSI-approved](https://opensource.org/licenses/) [MI
 If you use *JELI* in academic research, please cite it as follows
 
 ```
-Clémence Réda, Jill-Jênn Vie, Olaf Wolkenhauer. Joint Embedding-Classifier Learning for Interpretable Collaborative Filtering. 2024. hal-04625183.
+@article{reda2025joint,
+  title={Joint embedding--classifier learning for interpretable collaborative filtering},
+  author={R{\'e}da, Cl{\'e}mence and Vie, Jill-J{\^e}nn and Wolkenhauer, Olaf},
+  journal={BMC bioinformatics},
+  volume={26},
+  number={1},
+  pages={26},
+  year={2025},
+  publisher={Springer}
+}
+
 ```
 
 ## Community guidelines with respect to contributions, issue reporting, and support
